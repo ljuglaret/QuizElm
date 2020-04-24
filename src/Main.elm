@@ -7,6 +7,7 @@ import Bootstrap.Form.Checkbox as Checkbox
 import Bootstrap.Form.Fieldset as Fieldset
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
+import Bootstrap.Button as Button
 import Html exposing (Html,div,button,br)
 import Html.Events exposing (onClick)
 import Html exposing (text)
@@ -28,7 +29,7 @@ exemple : Questionnaire
 exemple = newQuestionnaire
             [((1,"racine carre de 9 "),[((1,"-3"),True),((2,"4"),False),((3,"3"),True)]),
              ((2,"racine carre de 4"),[((1,"-4"),False),((2,"-2"),True),((3,"2"),True)]),
-            ((3,"2*3"),[((1,"6"),True),((2,"5"),False)])
+            ((3,"4^-2"),[((1,"-2"),False),((2,"2"),True), ((3,"16"),False)])
             ]
 
 type Etat  = Initial | Corrige
@@ -81,18 +82,17 @@ nbDeFoisQuestionCochee model idQuestion idReponse =
       
 
 correction : Model -> String  -> Int ->  String 
-correction model intituleReponse idQ  =
+correction model intituleReponse idQT  =
     let
         repFausses : Maybe(List(Int,Int))
         repFausses = model.reponsesFausses
+        listeDesReponsesFausses  =
+            List.foldr(\(idQ,idR,b) accErreurs ->
+                                if List.member (idQ,idR,b)  (lesBonnesReponses  model.questionnaire)
+                                then accErreurs
+                                else  (idQ,idR)::accErreurs  ) [] model.listeDesReponses
 
-        listeDesReponsesFausses =
-            listOk model.questionnaire
-                |> List.concatMap Tuple.second 
-                |> List.filter(\(_,b) -> not b)
-                |> List.map Tuple.first
-                |> List.map Tuple.second
-        corresp = correspondance model.questionnaire idQ intituleReponse 
+        corresp = correspondance model.questionnaire idQT intituleReponse 
 
     in
         case repFausses of 
@@ -101,12 +101,12 @@ correction model intituleReponse idQ  =
                 if model.etat == Initial
                 then intituleReponse
                 else 
-                    if  questionCochee model idQ corresp                        
+                    if  questionCochee model idQT corresp                        
                     then 
-                        if List.any(\str -> str == intituleReponse) listeDesReponsesFausses
-                           then intituleReponse ++" :   Faux"
+                        if List.member(idQT,corresp) listeDesReponsesFausses
+                           then intituleReponse ++" :   Faux" {-Explication-}
                         else intituleReponse ++"    :   Vrai"
-                    else intituleReponse
+                    else intituleReponse{-++ "    :   Explication"-}
 
 correspondance q idq nomr = 
     let
@@ -120,17 +120,19 @@ fabriqueQuestionnaire model  =
         questionsReponses : List ((Int,String), List ((Int, String),Bool))
         questionsReponses =  listOk model.questionnaire
         uneReponse (iDQuestion,nomIDRep) reponsesAssocieesALaQuestion = 
+            
             Form.row []
             [
              Form.col  [ ]
                     [
-                     Html.img[src ("questions/"++String.fromInt iDQuestion ++ ".png")][]
+                     Html.img[style"scale" "1.2",src ("questions/"++String.fromInt iDQuestion ++ ".png")] []
+                  
                     , Fieldset.config
                     |> Fieldset.children
-                        (List.map(\(idRep, nomRep) -> 
-                                    Checkbox.checkbox
+                        (CDN.stylesheet::(   List.map(\(idRep, nomRep) -> 
+                                    Checkbox.advancedCheckbox
                                     [  Checkbox.id nomIDRep,
-                                       
+                                      
                                         Checkbox.checked (questionCochee model iDQuestion idRep  ),
                                         Checkbox.onCheck(\cocheOuPas ->
                                                             Change iDQuestion idRep cocheOuPas),
@@ -138,31 +140,36 @@ fabriqueQuestionnaire model  =
                                         then Checkbox.disabled False
                                         else Checkbox.disabled True,
 
-                                        if model.etat == Corrige && String.contains "Faux" (correction model nomRep iDQuestion )
+                                         if model.etat == Corrige && String.contains "Faux" (correction model nomRep iDQuestion )
                                         then Checkbox.danger
                                         else 
-                                            if model.etat == Corrige && String.contains "Vrai" (correction model nomRep iDQuestion )
+                                            if  model.etat == Corrige && String.contains "Vrai" (correction model nomRep iDQuestion )
                                             then Checkbox.success
-                                            else Checkbox.attrs[]
+                                            else Checkbox.attrs[style "font-size" "120px"]
                                              
                                     ]
-                                    (correction model nomRep iDQuestion ))
-                                    reponsesAssocieesALaQuestion)
+                                    (Checkbox.label [ style "font-size" "25px" ,style "font-family" "cursive"] [text(correction model nomRep iDQuestion)]))
+                                    reponsesAssocieesALaQuestion))
                                         
-                    |> Fieldset.view
+                    
+                    |> Fieldset.view, CDN.stylesheet
                     ]
                 ] 
         in 
-            questionsReponses|>
-                List.map
-                    (\(idEtIntituleQuestion,listeReponsesEtNom)->
-                        uneReponse
-                            idEtIntituleQuestion
-                            (List.map
-                                (\((id,nom),_) -> (id,nom))    
-                                listeReponsesEtNom)
-                    )
-        |>Form.form[]
+            Grid.container[]
+                (questionsReponses|>
+                    List.map
+                        (\(idEtIntituleQuestion,listeReponsesEtNom)->
+                            uneReponse
+                                idEtIntituleQuestion
+                                (List.map
+                                    (\((id,nom),_) -> (id,nom))    
+                                    listeReponsesEtNom)
+                        )
+                )
+        
+        
+       
 
 {-
 ((Int,String),[(Int)])
@@ -209,29 +216,38 @@ update msg model =
 view : Model -> Html Msg
 view model =
  Grid.container[]         -- Responsive fixed width container
-        [ CDN.stylesheet      -- Inlined Bootstrap CSS for use with reactor
-        ,if model.erreurs /= []
-        then   div[](List.map text model.erreurs)
-        else 
-            fabriqueQuestionnaire model
-            ,text (case model.score of 
-                        Just s -> String.fromInt s
-                        _ -> ""
-                            )
-            ,br[][]
-            ,button [ onClick EffacerLeFormulaire  ] [ text "Efface le formulaire" ]
-            ,br[][]
-            ,button [ onClick GetScore ] [ text "score" ]
-            
-
+        [ 
+        
+        Grid.row[][
+            Grid.col[][
+            CDN.stylesheet      -- Inlined Bootstrap CSS for use with reactor
+            ,if model.erreurs /= []
+            then   div[](List.map text model.erreurs)
+            else 
+                fabriqueQuestionnaire model
+                ,Html.div[style "width" "100%"][
+                    Html.div[style "float" "left"][Html.button (onClick GetScore:: styleBoutons) [ text "Score" ]]
+                
+                ,   Html.div[style "margin-right" "85%" ,style "float" "right", style "font-family" "cursive",  style "font-size" "25px", style "color" "brown"]
+                            [text (case model.score of
+                                    Just s -> String.fromInt s
+                                    _ -> ""
+                                )]
+                ]
+            ]
         ]
+        ,Grid.row [][Grid.col[][ Html.button (onClick EffacerLeFormulaire ::styleBoutons) [ text "Recommencer" ]]]
+        ]
+    --
     
         
 main : Program () Model Msg
 main =
   Browser.sandbox { init = init, update = update, view = view }
 
-
+styleBoutons : List (Html.Attribute msg)
+styleBoutons =  [ style "background-color" "purple", style "font-family" "cursive",  style "font-size" "25px", style "color" "white", style "text" "center "] 
+ 
 
 
 

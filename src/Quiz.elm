@@ -155,4 +155,5 @@ listOk (C2 liste) = List.map(\(C0 q) -> q) liste
 
 --correspondance : Questionnaire -> Int -> String -> Int
 
-                    
+
+

@@ -4726,14 +4726,17 @@ var author$project$Main$exemple = author$project$Quiz$newQuestionnaire(
 					true)
 				])),
 			_Utils_Tuple2(
-			_Utils_Tuple2(3, '2*3'),
+			_Utils_Tuple2(3, '4^-2'),
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					_Utils_Tuple2(1, '6'),
+					_Utils_Tuple2(1, '-2'),
+					false),
+					_Utils_Tuple2(
+					_Utils_Tuple2(2, '2'),
 					true),
 					_Utils_Tuple2(
-					_Utils_Tuple2(2, '5'),
+					_Utils_Tuple2(3, '16'),
 					false)
 				]))
 		]));
@@ -5124,34 +5127,33 @@ var author$project$Main$correspondance = F3(
 					A2(elm$core$List$map, elm$core$Tuple$first, lesReponses))));
 	});
 var author$project$Main$correction = F3(
-	function (model, intituleReponse, idQ) {
+	function (model, intituleReponse, idQT) {
 		var repFausses = model.reponsesFausses;
-		var listeDesReponsesFausses = A2(
-			elm$core$List$map,
-			elm$core$Tuple$second,
-			A2(
-				elm$core$List$map,
-				elm$core$Tuple$first,
-				A2(
-					elm$core$List$filter,
-					function (_n1) {
-						var b = _n1.b;
-						return !b;
-					},
-					A2(
-						elm$core$List$concatMap,
-						elm$core$Tuple$second,
-						author$project$Quiz$listOk(model.questionnaire)))));
-		var corresp = A3(author$project$Main$correspondance, model.questionnaire, idQ, intituleReponse);
+		var listeDesReponsesFausses = A3(
+			elm$core$List$foldr,
+			F2(
+				function (_n1, accErreurs) {
+					var idQ = _n1.a;
+					var idR = _n1.b;
+					var b = _n1.c;
+					return A2(
+						elm$core$List$member,
+						_Utils_Tuple3(idQ, idR, b),
+						author$project$Quiz$lesBonnesReponses(model.questionnaire)) ? accErreurs : A2(
+						elm$core$List$cons,
+						_Utils_Tuple2(idQ, idR),
+						accErreurs);
+				}),
+			_List_Nil,
+			model.listeDesReponses);
+		var corresp = A3(author$project$Main$correspondance, model.questionnaire, idQT, intituleReponse);
 		if (repFausses.$ === 'Nothing') {
 			return intituleReponse;
 		} else {
 			var repF = repFausses.a;
-			return _Utils_eq(model.etat, author$project$Main$Initial) ? intituleReponse : (A3(author$project$Main$questionCochee, model, idQ, corresp) ? (A2(
-				elm$core$List$any,
-				function (str) {
-					return _Utils_eq(str, intituleReponse);
-				},
+			return _Utils_eq(model.etat, author$project$Main$Initial) ? intituleReponse : (A3(author$project$Main$questionCochee, model, idQT, corresp) ? (A2(
+				elm$core$List$member,
+				_Utils_Tuple2(idQT, corresp),
 				listeDesReponsesFausses) ? (intituleReponse + ' :   Faux') : (intituleReponse + '    :   Vrai')) : intituleReponse);
 		}
 	});
@@ -5509,6 +5511,8 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var elm$html$Html$img = _VirtualDom_node('img');
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5525,6 +5529,27 @@ var elm$html$Html$Attributes$src = function (url) {
 };
 var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
+var elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var elm$html$Html$node = elm$virtual_dom$VirtualDom$node;
+var elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
+var rundis$elm_bootstrap$Bootstrap$CDN$stylesheet = A3(
+	elm$html$Html$node,
+	'link',
+	_List_fromArray(
+		[
+			elm$html$Html$Attributes$rel('stylesheet'),
+			elm$html$Html$Attributes$href('https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css')
+		]),
+	_List_Nil);
 var elm$html$Html$div = _VirtualDom_node('div');
 var rundis$elm_bootstrap$Bootstrap$Form$Col = function (a) {
 	return {$: 'Col', a: a};
@@ -5533,11 +5558,6 @@ var rundis$elm_bootstrap$Bootstrap$Form$col = F2(
 	function (options, children) {
 		return rundis$elm_bootstrap$Bootstrap$Form$Col(
 			{children: children, elemFn: elm$html$Html$div, options: options});
-	});
-var elm$html$Html$form = _VirtualDom_node('form');
-var rundis$elm_bootstrap$Bootstrap$Form$form = F2(
-	function (attributes, children) {
-		return A2(elm$html$Html$form, attributes, children);
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
 var elm$core$List$maybeCons = F3(
@@ -6358,14 +6378,6 @@ var rundis$elm_bootstrap$Bootstrap$Form$row = F2(
 				rundis$elm_bootstrap$Bootstrap$Grid$Internal$rowAttributes(options)),
 			A2(elm$core$List$map, rundis$elm_bootstrap$Bootstrap$Form$renderCol, cols));
 	});
-var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Attrs = function (a) {
-	return {$: 'Attrs', a: a};
-};
-var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$attrs = function (attrs_) {
-	return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Attrs(attrs_);
-};
-var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Checkbox = function (a) {
 	return {$: 'Checkbox', a: a};
 };
@@ -6373,14 +6385,6 @@ var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$create = F2(
 	function (options, label_) {
 		return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Checkbox(
 			{label: label_, options: options});
-	});
-var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Label = function (a) {
-	return {$: 'Label', a: a};
-};
-var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$label = F2(
-	function (attributes, children) {
-		return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Label(
-			{attributes: attributes, children: children});
 	});
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$label = _VirtualDom_node('label');
@@ -6606,20 +6610,17 @@ var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$view = function (_n0) {
 				label_.children)
 			]));
 };
-var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$checkbox = F2(
-	function (options, labelText) {
+var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$advancedCheckbox = F2(
+	function (options, label_) {
 		return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$view(
-			A2(
-				rundis$elm_bootstrap$Bootstrap$Form$Checkbox$create,
-				options,
-				A2(
-					rundis$elm_bootstrap$Bootstrap$Form$Checkbox$label,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text(labelText)
-						]))));
+			A2(rundis$elm_bootstrap$Bootstrap$Form$Checkbox$create, options, label_));
 	});
+var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Attrs = function (a) {
+	return {$: 'Attrs', a: a};
+};
+var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$attrs = function (attrs_) {
+	return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Attrs(attrs_);
+};
 var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$On = {$: 'On'};
 var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Value = function (a) {
 	return {$: 'Value', a: a};
@@ -6645,6 +6646,14 @@ var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Id = function (a) {
 var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$id = function (theId) {
 	return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Id(theId);
 };
+var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Label = function (a) {
+	return {$: 'Label', a: a};
+};
+var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$label = F2(
+	function (attributes, children) {
+		return rundis$elm_bootstrap$Bootstrap$Form$Checkbox$Label(
+			{attributes: attributes, children: children});
+	});
 var rundis$elm_bootstrap$Bootstrap$Form$Checkbox$OnChecked = function (a) {
 	return {$: 'OnChecked', a: a};
 };
@@ -6707,6 +6716,18 @@ var rundis$elm_bootstrap$Bootstrap$Form$Fieldset$view = function (_n0) {
 					},
 					rec.legend))));
 };
+var rundis$elm_bootstrap$Bootstrap$Grid$container = F2(
+	function (attributes, children) {
+		return A2(
+			elm$html$Html$div,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('container')
+					]),
+				attributes),
+			children);
+	});
 var author$project$Main$fabriqueQuestionnaire = function (model) {
 	var uneReponse = F2(
 		function (_n4, reponsesAssocieesALaQuestion) {
@@ -6726,6 +6747,7 @@ var author$project$Main$fabriqueQuestionnaire = function (model) {
 								elm$html$Html$img,
 								_List_fromArray(
 									[
+										A2(elm$html$Html$Attributes$style, 'scale', '1.2'),
 										elm$html$Html$Attributes$src(
 										'questions/' + (elm$core$String$fromInt(iDQuestion) + '.png'))
 									]),
@@ -6734,44 +6756,59 @@ var author$project$Main$fabriqueQuestionnaire = function (model) {
 								A2(
 									rundis$elm_bootstrap$Bootstrap$Form$Fieldset$children,
 									A2(
-										elm$core$List$map,
-										function (_n3) {
-											var idRep = _n3.a;
-											var nomRep = _n3.b;
-											return A2(
-												rundis$elm_bootstrap$Bootstrap$Form$Checkbox$checkbox,
-												_List_fromArray(
-													[
-														rundis$elm_bootstrap$Bootstrap$Form$Checkbox$id(nomIDRep),
-														rundis$elm_bootstrap$Bootstrap$Form$Checkbox$checked(
-														A3(author$project$Main$questionCochee, model, iDQuestion, idRep)),
-														rundis$elm_bootstrap$Bootstrap$Form$Checkbox$onCheck(
-														function (cocheOuPas) {
-															return A3(author$project$Main$Change, iDQuestion, idRep, cocheOuPas);
-														}),
-														_Utils_eq(model.etat, author$project$Main$Initial) ? rundis$elm_bootstrap$Bootstrap$Form$Checkbox$disabled(false) : rundis$elm_bootstrap$Bootstrap$Form$Checkbox$disabled(true),
-														(_Utils_eq(model.etat, author$project$Main$Corrige) && A2(
-														elm$core$String$contains,
-														'Faux',
-														A3(author$project$Main$correction, model, nomRep, iDQuestion))) ? rundis$elm_bootstrap$Bootstrap$Form$Checkbox$danger : ((_Utils_eq(model.etat, author$project$Main$Corrige) && A2(
-														elm$core$String$contains,
-														'Vrai',
-														A3(author$project$Main$correction, model, nomRep, iDQuestion))) ? rundis$elm_bootstrap$Bootstrap$Form$Checkbox$success : rundis$elm_bootstrap$Bootstrap$Form$Checkbox$attrs(
+										elm$core$List$cons,
+										rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
+										A2(
+											elm$core$List$map,
+											function (_n3) {
+												var idRep = _n3.a;
+												var nomRep = _n3.b;
+												return A2(
+													rundis$elm_bootstrap$Bootstrap$Form$Checkbox$advancedCheckbox,
+													_List_fromArray(
+														[
+															rundis$elm_bootstrap$Bootstrap$Form$Checkbox$id(nomIDRep),
+															rundis$elm_bootstrap$Bootstrap$Form$Checkbox$checked(
+															A3(author$project$Main$questionCochee, model, iDQuestion, idRep)),
+															rundis$elm_bootstrap$Bootstrap$Form$Checkbox$onCheck(
+															function (cocheOuPas) {
+																return A3(author$project$Main$Change, iDQuestion, idRep, cocheOuPas);
+															}),
+															_Utils_eq(model.etat, author$project$Main$Initial) ? rundis$elm_bootstrap$Bootstrap$Form$Checkbox$disabled(false) : rundis$elm_bootstrap$Bootstrap$Form$Checkbox$disabled(true),
+															(_Utils_eq(model.etat, author$project$Main$Corrige) && A2(
+															elm$core$String$contains,
+															'Faux',
+															A3(author$project$Main$correction, model, nomRep, iDQuestion))) ? rundis$elm_bootstrap$Bootstrap$Form$Checkbox$danger : ((_Utils_eq(model.etat, author$project$Main$Corrige) && A2(
+															elm$core$String$contains,
+															'Vrai',
+															A3(author$project$Main$correction, model, nomRep, iDQuestion))) ? rundis$elm_bootstrap$Bootstrap$Form$Checkbox$success : rundis$elm_bootstrap$Bootstrap$Form$Checkbox$attrs(
+															_List_fromArray(
+																[
+																	A2(elm$html$Html$Attributes$style, 'font-size', '120px')
+																])))
+														]),
+													A2(
+														rundis$elm_bootstrap$Bootstrap$Form$Checkbox$label,
 														_List_fromArray(
 															[
-																A2(elm$html$Html$Attributes$style, 'background-color', 'blue')
-															])))
-													]),
-												A3(author$project$Main$correction, model, nomRep, iDQuestion));
-										},
-										reponsesAssocieesALaQuestion),
-									rundis$elm_bootstrap$Bootstrap$Form$Fieldset$config))
+																A2(elm$html$Html$Attributes$style, 'font-size', '25px'),
+																A2(elm$html$Html$Attributes$style, 'font-family', 'cursive')
+															]),
+														_List_fromArray(
+															[
+																elm$html$Html$text(
+																A3(author$project$Main$correction, model, nomRep, iDQuestion))
+															])));
+											},
+											reponsesAssocieesALaQuestion)),
+									rundis$elm_bootstrap$Bootstrap$Form$Fieldset$config)),
+								rundis$elm_bootstrap$Bootstrap$CDN$stylesheet
 							]))
 					]));
 		});
 	var questionsReponses = author$project$Quiz$listOk(model.questionnaire);
 	return A2(
-		rundis$elm_bootstrap$Bootstrap$Form$form,
+		rundis$elm_bootstrap$Bootstrap$Grid$container,
 		_List_Nil,
 		A2(
 			elm$core$List$map,
@@ -6793,7 +6830,14 @@ var author$project$Main$fabriqueQuestionnaire = function (model) {
 			},
 			questionsReponses));
 };
-var elm$html$Html$br = _VirtualDom_node('br');
+var author$project$Main$styleBoutons = _List_fromArray(
+	[
+		A2(elm$html$Html$Attributes$style, 'background-color', 'purple'),
+		A2(elm$html$Html$Attributes$style, 'font-family', 'cursive'),
+		A2(elm$html$Html$Attributes$style, 'font-size', '25px'),
+		A2(elm$html$Html$Attributes$style, 'color', 'white'),
+		A2(elm$html$Html$Attributes$style, 'text', 'center ')
+	]);
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$Events$onClick = function (msg) {
 	return A2(
@@ -6801,38 +6845,47 @@ var elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		elm$json$Json$Decode$succeed(msg));
 };
-var elm$virtual_dom$VirtualDom$node = function (tag) {
-	return _VirtualDom_node(
+var rundis$elm_bootstrap$Bootstrap$Grid$Column = function (a) {
+	return {$: 'Column', a: a};
+};
+var rundis$elm_bootstrap$Bootstrap$Grid$col = F2(
+	function (options, children) {
+		return rundis$elm_bootstrap$Bootstrap$Grid$Column(
+			{children: children, options: options});
+	});
+var elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
+	return _VirtualDom_keyedNode(
 		_VirtualDom_noScript(tag));
 };
-var elm$html$Html$node = elm$virtual_dom$VirtualDom$node;
-var elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
+var elm$html$Html$Keyed$node = elm$virtual_dom$VirtualDom$keyedNode;
+var rundis$elm_bootstrap$Bootstrap$Grid$renderCol = function (column) {
+	switch (column.$) {
+		case 'Column':
+			var options = column.a.options;
+			var children = column.a.children;
+			return A2(
+				elm$html$Html$div,
+				rundis$elm_bootstrap$Bootstrap$Grid$Internal$colAttributes(options),
+				children);
+		case 'ColBreak':
+			var e = column.a;
+			return e;
+		default:
+			var options = column.a.options;
+			var children = column.a.children;
+			return A3(
+				elm$html$Html$Keyed$node,
+				'div',
+				rundis$elm_bootstrap$Bootstrap$Grid$Internal$colAttributes(options),
+				children);
+	}
 };
-var elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
-var rundis$elm_bootstrap$Bootstrap$CDN$stylesheet = A3(
-	elm$html$Html$node,
-	'link',
-	_List_fromArray(
-		[
-			elm$html$Html$Attributes$rel('stylesheet'),
-			elm$html$Html$Attributes$href('https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css')
-		]),
-	_List_Nil);
-var rundis$elm_bootstrap$Bootstrap$Grid$container = F2(
-	function (attributes, children) {
+var rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
+	function (options, cols) {
 		return A2(
 			elm$html$Html$div,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('container')
-					]),
-				attributes),
-			children);
+			rundis$elm_bootstrap$Bootstrap$Grid$Internal$rowAttributes(options),
+			A2(elm$core$List$map, rundis$elm_bootstrap$Bootstrap$Grid$renderCol, cols));
 	});
 var author$project$Main$view = function (model) {
 	return A2(
@@ -6840,42 +6893,95 @@ var author$project$Main$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
-				rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
-				(!_Utils_eq(model.erreurs, _List_Nil)) ? A2(
-				elm$html$Html$div,
+				A2(
+				rundis$elm_bootstrap$Bootstrap$Grid$row,
 				_List_Nil,
-				A2(elm$core$List$map, elm$html$Html$text, model.erreurs)) : author$project$Main$fabriqueQuestionnaire(model),
-				elm$html$Html$text(
-				function () {
-					var _n0 = model.score;
-					if (_n0.$ === 'Just') {
-						var s = _n0.a;
-						return elm$core$String$fromInt(s);
-					} else {
-						return '';
-					}
-				}()),
-				A2(elm$html$Html$br, _List_Nil, _List_Nil),
-				A2(
-				elm$html$Html$button,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Main$EffacerLeFormulaire)
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Efface le formulaire')
+						A2(
+						rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
+								(!_Utils_eq(model.erreurs, _List_Nil)) ? A2(
+								elm$html$Html$div,
+								_List_Nil,
+								A2(elm$core$List$map, elm$html$Html$text, model.erreurs)) : author$project$Main$fabriqueQuestionnaire(model),
+								A2(
+								elm$html$Html$div,
+								_List_fromArray(
+									[
+										A2(elm$html$Html$Attributes$style, 'width', '100%')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$div,
+										_List_fromArray(
+											[
+												A2(elm$html$Html$Attributes$style, 'float', 'left')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												elm$html$Html$button,
+												A2(
+													elm$core$List$cons,
+													elm$html$Html$Events$onClick(author$project$Main$GetScore),
+													author$project$Main$styleBoutons),
+												_List_fromArray(
+													[
+														elm$html$Html$text('Score')
+													]))
+											])),
+										A2(
+										elm$html$Html$div,
+										_List_fromArray(
+											[
+												A2(elm$html$Html$Attributes$style, 'margin-right', '85%'),
+												A2(elm$html$Html$Attributes$style, 'float', 'right'),
+												A2(elm$html$Html$Attributes$style, 'font-family', 'cursive'),
+												A2(elm$html$Html$Attributes$style, 'font-size', '25px'),
+												A2(elm$html$Html$Attributes$style, 'color', 'brown')
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text(
+												function () {
+													var _n0 = model.score;
+													if (_n0.$ === 'Just') {
+														var s = _n0.a;
+														return elm$core$String$fromInt(s);
+													} else {
+														return '';
+													}
+												}())
+											]))
+									]))
+							]))
 					])),
-				A2(elm$html$Html$br, _List_Nil, _List_Nil),
 				A2(
-				elm$html$Html$button,
+				rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Main$GetScore)
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('score')
+						A2(
+						rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$button,
+								A2(
+									elm$core$List$cons,
+									elm$html$Html$Events$onClick(author$project$Main$EffacerLeFormulaire),
+									author$project$Main$styleBoutons),
+								_List_fromArray(
+									[
+										elm$html$Html$text('Recommencer')
+									]))
+							]))
 					]))
 			]));
 };
